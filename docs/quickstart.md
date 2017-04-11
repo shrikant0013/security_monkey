@@ -9,8 +9,8 @@ Security Monkey can run on an Amazon EC2 (AWS) instance or a Google Cloud Platfo
 IAM Permissions
 ---------------
 
--   For AWS, please see [AWS IAM instructions](iam_aws.md).
--   For GCP, please see [GCP IAM instructions](iam_gcp.md).
+-   [AWS IAM instructions](iam_aws.md).
+-   [GCP IAM instructions](iam_gcp.md).
 
 Database
 --------
@@ -34,6 +34,7 @@ Install Security Monkey on your Instance
 Installation Steps:
 
 -   Prerequisites
+-   Setup a local postgres server
 -   Clone security_monkey
 -   Compile (or Download) the web UI
 -   Review the config
@@ -84,11 +85,6 @@ Releases are on the master branch and are updated about every three months. Blee
     pip install --upgrade setuptools
     pip install google-compute-engine  # Only required on GCP
     python setup.py install
-
-Fix ownership for python modules:
-
-    sudo usermod -a -G staff www-data
-    sudo chgrp staff /usr/local/lib/python2.7/dist-packages/*.egg
 
 ### Compile (or Download) the web UI
 
@@ -227,15 +223,15 @@ Copy the config file into place:
 
 Symlink the sites-available file to the sites-enabled folder:
 
-    $ sudo ln -s /etc/nginx/sites-available/security_monkey.conf /etc/nginx/sites-enabled/security_monkey.conf
+    sudo ln -s /etc/nginx/sites-available/security_monkey.conf /etc/nginx/sites-enabled/security_monkey.conf
 
 Delete the default configuration:
 
-    $ sudo rm /etc/nginx/sites-enabled/default
+    sudo rm /etc/nginx/sites-enabled/default
 
 Restart nginx:
 
-    $ sudo service nginx restart
+    sudo service nginx restart
 
 Logging into the UI
 -------------------
