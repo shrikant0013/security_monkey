@@ -164,14 +164,9 @@ Users can be created on the command line or by registering in the web UI:
     > Password:
     > Confirm Password:
 
-create\_user takes two parameters. 1) is the email address and 2) is the role.
-
-Roles should be one of these:
-
--   View
--   Comment
--   Justify
--   Admin
+`create_user` takes two parameters:
+- email address
+- role (One of `[View, Comment, Justify, Admin]`)
 
 Setting up Supervisor
 ---------------------
@@ -180,6 +175,7 @@ Supervisor will auto-start security monkey and will auto-restart security monkey
 
 Copy supervisor config:
 
+    chgrp -R www-data /var/log/security_monkey
     sudo cp /usr/local/src/security_monkey/supervisor/security_monkey.conf /etc/supervisor/conf.d/security_monkey.conf
     sudo service supervisor restart
     sudo supervisorctl status
@@ -220,17 +216,8 @@ Security Monkey uses gunicorn to serve up content on its internal 127.0.0.1 addr
 Copy the config file into place:
 
     sudo cp /usr/local/src/security_monkey/nginx/security_monkey.conf /etc/nginx/sites-available/security_monkey.conf
-
-Symlink the sites-available file to the sites-enabled folder:
-
     sudo ln -s /etc/nginx/sites-available/security_monkey.conf /etc/nginx/sites-enabled/security_monkey.conf
-
-Delete the default configuration:
-
     sudo rm /etc/nginx/sites-enabled/default
-
-Restart nginx:
-
     sudo service nginx restart
 
 Logging into the UI
