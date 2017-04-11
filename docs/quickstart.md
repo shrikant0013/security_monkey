@@ -17,26 +17,9 @@ Database
 
 Security Monkey needs a postgres database. Select one of the following:
 
--   Local Postgres
+-   Local Postgres (You'll set this up later once you have an instance up.)
 -   [Postgres on AWS RDS](postgres_aws.md).
 -   [Postgres on GCP's Cloud SQL](postgres_gcp.md).
-
-### Local Postgres
-
-Install Posgres:
-
-    sudo apt-get install postgresql postgresql-contrib
-
-Configure the DB:
-
-    sudo -u postgres psql
-    CREATE DATABASE "secmonkey";
-    CREATE ROLE "securitymonkeyuser" LOGIN PASSWORD 'securitymonkeypassword';
-    CREATE SCHEMA secmonkey;
-    GRANT Usage, Create ON SCHEMA "secmonkey" TO "securitymonkeyuser";
-    set timezone TO 'GMT';
-    select now();
-    \q
 
 Launch an Instance:
 -------------------
@@ -57,38 +40,50 @@ Installation Steps:
 
 ### Prerequisites
 
-We now have a fresh install of Ubuntu. Let's add the hostname to the hosts file:
-
-    $ hostname
-    ip-172-30-0-151
-
-Add this to /etc/hosts: (Use nano if you're not familiar with vi.):
-
-    $ sudo vi /etc/hosts
-    127.0.0.1 ip-172-30-0-151
-
 Create the logging folders:
 
     sudo mkdir /var/log/security_monkey
     sudo mkdir /var/www
-    sudo chown www-data /var/log/security_monkey
+    sudo chown -R `whoami`:www-data /var/log/security_monkey/
     sudo chown www-data /var/www
 
 Let's install the tools we need for Security Monkey:
 
-    $ sudo apt-get update
-    $ sudo apt-get -y install python-pip python-dev python-psycopg2 postgresql postgresql-contrib libpq-dev nginx supervisor git libffi-dev gcc python-virtualenv
+    sudo apt-get update
+    sudo apt-get -y install python-pip python-dev python-psycopg2 postgresql postgresql-contrib libpq-dev nginx supervisor git libffi-dev gcc python-virtualenv
+
+### Local Postgres
+
+If you're not ready to setup AWS RDS or Cloud SQL, follow these instructions to setup a local postgres DB.
+
+Install Postgres:
+
+    sudo apt-get install postgresql postgresql-contrib
+
+Configure the DB:
+
+    sudo -u postgres psql
+    CREATE DATABASE "secmonkey";
+    CREATE ROLE "securitymonkeyuser" LOGIN PASSWORD 'securitymonkeypassword';
+    CREATE SCHEMA secmonkey;
+    GRANT Usage, Create ON SCHEMA "secmonkey" TO "securitymonkeyuser";
+    set timezone TO 'GMT';
+    select now();
+    \q
 
 ### Clone security_monkey
 
 Releases are on the master branch and are updated about every three months. Bleeding edge features are on the develop branch.
 
     cd /usr/local/src
-    sudo git clone --depth 1 --branch master https://github.com/Netflix/security_monkey.git
+    sudo git clone --depth 1 --branch develop https://github.com/Netflix/security_monkey.git
+    sudo chown -R `whoami`:www-data /usr/local/src/security_monkey
     cd security_monkey
-    sudo virtualenv venv
-    sudo pip install --upgrade setuptools
-    sudo python setup.py install
+    virtualenv venv
+    source venv/bin/activate
+    pip install --upgrade setuptools
+    pip install google-compute-engine  # Only required on GCP
+    python setup.py install
 
 Fix ownership for python modules:
 
@@ -113,23 +108,23 @@ If you're using the bleeding edge (develop) branch, you will need to compile the
 
     # Build the Web UI
     cd /usr/local/src/security_monkey/dart
-    sudo /usr/lib/dart/bin/pub get
-    sudo /usr/lib/dart/bin/pub build
+    /usr/lib/dart/bin/pub get
+    /usr/lib/dart/bin/pub build
 
     # Copy the compiled Web UI to the appropriate destination
-    sudo mkdir -p /usr/local/src/security_monkey/security_monkey/static/
-    sudo /bin/cp -R /usr/local/src/security_monkey/dart/build/web/* /usr/local/src/security_monkey/security_monkey/static/
-    sudo chgrp -R www-data /usr/local/src/security_monkey
+    mkdir -p /usr/local/src/security_monkey/security_monkey/static/
+    /bin/cp -R /usr/local/src/security_monkey/dart/build/web/* /usr/local/src/security_monkey/security_monkey/static/
+    chgrp -R www-data /usr/local/src/security_monkey
 
 ### Configure the Application
 
 Security Monkey ships with a config for this quickstart guide called config.py. You can override this behavior by setting the `SECURITY_MONKEY_SETTINGS` environment variable.
 
 Modify `env-config/config.py`:
-- FQDN: Add the IP or DNS entry of your instance.
-- SQLACHEMY_DATABASE_URI: This config assumes that you are using the local db option. If you setup AWS RDS or GCP Cloud SQL as your database, you will need to modify the SQLACHEMY_DATABASE_URI to point to your DB.
-- SECRET_KEY: Something random.
-- SECURITY_PASSWORD_SALT: Something random.
+- `FQDN`: Add the IP or DNS entry of your instance.
+- `SQLACHEMY_DATABASE_URI`: This config assumes that you are using the local db option. If you setup AWS RDS or GCP Cloud SQL as your database, you will need to modify the SQLACHEMY_DATABASE_URI to point to your DB.
+- `SECRET_KEY`: Something random.
+- `SECURITY_PASSWORD_SALT`: Something random.
 
 For an explanation of the configuration options, see [options](options.md).
 
@@ -138,7 +133,7 @@ For an explanation of the configuration options, see [options](options.md).
 Security Monkey uses Flask-Migrate (Alembic) to keep database tables up to date. To create the tables, run this command:
 
     cd /usr/local/src/security_monkey/
-    sudo -E python manage.py db upgrade
+    python manage.py db upgrade
 
 Populate Security Monkey with Accounts
 --------------------------------------
@@ -147,20 +142,20 @@ Populate Security Monkey with Accounts
 
 This will add Amazon owned AWS accounts to security monkey. :
 
-    $ sudo -E python manage.py amazon_accounts
+    python manage.py amazon_accounts
 
 ### Add Your AWS/GCP Accounts
 
 You'll need to add at least one account before starting the scheduler. It's easiest to add them from the command line, but it can also be done through the web UI. :
 
-    $ python manage.py add_account_aws
+    python manage.py add_account_aws
     usage: manage.py add_account_aws [-h] -n NAME [--thirdparty] [--active]
                                  [--notes NOTES] --id IDENTIFIER
                                  [--update-existing]
                                  [--canonical_id CANONICAL_ID]
                                  [--s3_name S3_NAME] [--role_name ROLE_NAME]
 
-    $ python manage.py add_account_gcp
+    python manage.py add_account_gcp
     usage: manage.py add_account_gcp [-h] -n NAME [--thirdparty] [--active]
                                  [--notes NOTES] --id IDENTIFIER
                                  [--update-existing] [--creds_file CREDS_FILE]
@@ -169,7 +164,7 @@ You'll need to add at least one account before starting the scheduler. It's easi
 
 Users can be created on the command line or by registering in the web UI:
 
-    $ sudo -E python manage.py create_user "you@youremail.com" "Admin"
+    $ python manage.py create_user "you@youremail.com" "Admin"
     > Password:
     > Confirm Password:
 
@@ -193,11 +188,11 @@ Copy supervisor config:
     sudo service supervisor restart
     sudo supervisorctl status
 
-Supervisor will attempt to start two python jobs and make sure they are running. The first job, securitymonkey, is gunicorn, which it launches by calling manage.py run\_api\_server.
+Supervisor will attempt to start two python jobs and make sure they are running. The first job, securitymonkey, is gunicorn, which it launches by calling manage.py `run_api_server`.
 
 The second job supervisor runs is the scheduler, which polls for changes.
 
-You can track progress by tailing /var/log/security\_monkey/securitymonkey.log.
+You can track progress by tailing `/var/log/security_monkey/securitymonkey.log`.
 
 Create an SSL Certificate
 -------------------------
