@@ -1,5 +1,5 @@
-Quick Update Guide
-==================
+Update Security Monkey
+======================
 
 Update Security Monkey on your Instance
 ----------------------------------------
