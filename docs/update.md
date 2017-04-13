@@ -22,9 +22,9 @@ This doc assumes you already have installed and running security monkey environm
 
 ### Backup config and installation files
 
-Backup your /usr/local/src/security_monkey/env-config/config-deploy.py and move your exsiting installation to backup directory
+Backup your `/usr/local/src/security_monkey/env-config/config.py` and move your exsiting installation to backup directory
 ```
-cp /usr/local/src/security_monkey/env-config/config-deploy.py ~/
+cp /usr/local/src/security_monkey/env-config/config.py ~/
 mkdir ~/security_monkey_backup && mv /usr/local/src/security_monkey/ ~/security_monkey_backup/
 ```
 
@@ -82,8 +82,15 @@ chgrp -R www-data /usr/local/src/security_monkey
 
 ### Update configurations
 
+Replace the config file that we previously backed up.
+
 ```
-sudo mv ~/config-deploy.py /usr/local/src/security_monkey/env-config/
+sudo mv ~/config.py /usr/local/src/security_monkey/env-config/
+```
+
+If your file is named something other than `config.py`, you will want to set the `SECURITY_MONKEY_SETTINGS` environment variable to point to your config:
+
+```
 export SECURITY_MONKEY_SETTINGS=/usr/local/src/security_monkey/env-config/config-deploy.py
 ```
 
@@ -94,7 +101,7 @@ Note: python manage.py db upgrade is idempotent. You can re-run it without causi
 
 ```
 cd /usr/local/src/security_monkey/
-python manage.py db upgrade
+monkey db upgrade
 ```
 
 ### Start services
@@ -103,4 +110,4 @@ sudo supervisorctl start securitymonkey
 sudo supervisorctl start securitymonkeyscheduler
 ```
 *Note:*
-*Netflix don't upgrade/patch Security Monkey systems. Instead simply rebake a new instance with the new version.*
+*Netflix doesn't upgrade/patch Security Monkey systems. Instead simply rebake a new instance with the new version.*
