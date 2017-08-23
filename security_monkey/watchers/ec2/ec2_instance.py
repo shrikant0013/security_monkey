@@ -81,29 +81,29 @@ class EC2Instance(Watcher):
                         if self.check_ignore_list(name):
                             continue
 
-                    config = {
-                        'name': name,
-                        'instance_id': instance_id,
-                        'image_id': instance.get('ImageId'),
-                        'state': instance.get('State'),
-                        'private_dns_name': instance.get('PrivateDnsName'),
-                        'public_dns_name': instance.get('PublicDnsName'),
-                        'instance_type': instance.get('InstanceType'),
-                        'launch_time': str(instance.get('LaunchTime')),
-                        'placement': instance.get('placement'),
-                        'subnet_id': instance.get('SubnetId'),
-                        'vpc_id': instance.get('VpcId'),
-                        'private_ip_address': instance.get('PrivateIpAddress'),
-                        'public_ip_address': instance.get('PublicIpAddress'),
-                    }
+                        config = {
+                            'name': name,
+                            'instance_id': instance_id,
+                            'image_id': instance.get('ImageId'),
+                            'state': instance.get('State'),
+                            'private_dns_name': instance.get('PrivateDnsName'),
+                            'public_dns_name': instance.get('PublicDnsName'),
+                            'instance_type': instance.get('InstanceType'),
+                            'launch_time': str(instance.get('LaunchTime')),
+                            'placement': instance.get('placement'),
+                            'subnet_id': instance.get('SubnetId'),
+                            'vpc_id': instance.get('VpcId'),
+                            'private_ip_address': instance.get('PrivateIpAddress'),
+                            'public_ip_address': instance.get('PublicIpAddress'),
+                        }
 
-                    unique_name = name + '(' + instance_id + ')'
+                        unique_name = name + '(' + instance_id + ')'
 
-                    item = EC2InstanceItem(region=kwargs['region'],
-                                           account=kwargs['account_name'],
-                                           name=unique_name, config=dict(config))
+                        item = EC2InstanceItem(region=kwargs['region'],
+                                               account=kwargs['account_name'],
+                                               name=unique_name, config=dict(config))
 
-                    item_list.append(item)
+                        item_list.append(item)
 
             return item_list, exception_map
         return slurp_items()
