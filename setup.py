@@ -55,7 +55,7 @@ setup(
         'itsdangerous==0.23',
         'psycopg2==2.7.3.2',
         'bcrypt==3.1.2',
-        'gunicorn==18.0',
+        'gunicorn==19.5.0',
         'cryptography>=1.8.1',
         'boto3>=1.4.2',
         'botocore>=1.4.81',
